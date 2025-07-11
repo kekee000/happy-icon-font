@@ -1,0 +1,70 @@
+{
+  "name": "happy-icon-font",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Export and import icon font in Figma",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development webpack --watch",
+    "build": "webpack --mode=production",
+    "prettier:format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json}' ",
+    "lint": "eslint 'src/**/*.{js,jsx,ts,tsx,json}' && stylelint \"**/*.{less,css}\" --ignore-path .gitignore",
+    "lint:fix": "eslint --fix 'src/**/*.{js,jsx,ts,tsx,json}' && stylelint --fix \"**/*.{less,css}\" --ignore-path .gitignore",
+    "lint:code": "eslint 'src/**/*.{js,jsx,ts,tsx,json}'",
+    "lint:code:fix": "eslint --fix 'src/**/*.{js,jsx,ts,tsx,json}'",
+    "lint:style": "stylelint \"**/*.{less,css}\" --ignore-path .gitignore",
+    "lint:style:fix": "stylelint --fix \"**/*.{less,css}\" --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.5.1",
+    "antd": "^5.19.3",
+    "axios": "^1.7.2",
+    "events": "^3.3.0",
+    "fonteditor-core": "^2.5.4",
+    "jotai": "^2.10.3",
+    "jszip": "^3.10.1",
+    "lodash-es": "^4.17.21",
+    "loglevel": "^1.9.1",
+    "loglevel-plugin-prefix": "^0.8.4",
+    "normalize.css": "^8.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.3.0"
+  },
+  "devDependencies": {
+    "@ecomfe/eslint-config": "^8.0.0",
+    "@ecomfe/stylelint-config": "^1.1.2",
+    "@figma/plugin-typings": "^1.50.0",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.0.17",
+    "@types/react-dom": "^18.0.6",
+    "cross-env": "^7.0.3",
+    "css-loader": "^6.7.1",
+    "html-webpack-plugin": "^5.5.0",
+    "husky": "^8.0.1",
+    "less": "^4.2.0",
+    "less-loader": "^12.2.0",
+    "lint-staged": "^13.0.3",
+    "postcss": "8.4.41",
+    "postcss-css-variables": "^0.19.0",
+    "prettier": "^2.7.1",
+    "react-dev-utils": "^12.0.1",
+    "style-loader": "^3.3.1",
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.7.4",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx,ts,tsx,css,json}": [
+      "prettier --write"
+    ]
+  }
+}

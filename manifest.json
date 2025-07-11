@@ -1,0 +1,25 @@
+{
+  "name": "Happy Icon Font",
+  "id": "1525428179995933886",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "enablePrivatePluginApi": true,
+  "permissions": ["currentuser"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["https://kekee000.github.io"],
+    "reasoning": "online font editor",
+    "devAllowedDomains": ["https://kekee000.github.io"]
+  },
+  "menu": [{
+      "name": "Export Icon",
+      "command": "Icon2Font"
+    },
+    {
+      "name": "Import Font Glyphs to Icon",
+      "command": "Font2Icon"
+    }
+  ]
+}
