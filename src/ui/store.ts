@@ -23,11 +23,11 @@ export function setCurrentPage(page: PageRole) {
     });
 }
 
-export function setSelectedLayerSnapshot(data: string[]) {
+export function setSettings(data: HappyIconFont.PluginSettings) {
     store.set(appStateAtom, old => {
         return {
             ...old,
-            selectedLayerSnapshots: data
+            pluginSettings: data
         };
     });
 }

@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const InlineChunkHtmlPlugin = require('react-dev-utils/InlineChunkHtmlPlugin');
@@ -80,6 +81,10 @@ module.exports = (env, argv) => ({
         test: /\.(png|jpg|gif|webp|svg)$/,
         loader: 'url-loader'
       },
+      {
+        test: /\.(tpl)$/,
+        type: 'asset/source',
+      },
     ],
   },
 
@@ -108,9 +113,12 @@ module.exports = (env, argv) => ({
     new HtmlWebpackPlugin({
       template: './src/ui/index.html',
       filename: 'ui.html',
+      templateParameters: {
+        ejsScript: fs.readFileSync(path.resolve(__dirname, 'node_modules/ejs/ejs.min.js'), 'utf8'),
+      },
       chunks: ['ui'],
       cache: false,
     }),
     new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/ui/]),
-  ],
+  ]
 });

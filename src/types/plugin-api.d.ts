@@ -1,10 +1,18 @@
 declare namespace HappyIconFont {
     export interface PluginAPI {
         selectNodes(ids: string[]): Promise<void>;
-        getSelection(): string[];
+        getSelectionSVG(): Promise<Array<{name: string, svg: string}>>;
         figmaNotify(message: string, options?: {}): void;
-        getSelectionSnapshots(): Promise<string[]>;
         openExternal(url: string): void;
+        setSettings(settings: PluginSettings): Promise<void>;
+        getSettings(): Promise<PluginSettings | null>;
+    }
+
+    export interface PluginSettings {
+        icon2FontSettings: {
+            fontFamily: string;
+        },
+        font2IconSettings: any;
     }
 }
 

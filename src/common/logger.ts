@@ -1,9 +1,9 @@
 import prefix from 'loglevel-plugin-prefix';
 import log from 'loglevel';
 
-const logger = (name) => {
+const logger = (name: string) => {
     let logger = log.noConflict();
-    const prefixer = prefix.noConflict();
+    const prefixer = (prefix as any).noConflict();
     prefix.reg(logger);
 
     switch (process.env.NODE_ENV) {
@@ -53,7 +53,7 @@ const logger = (name) => {
         format: undefined,
     });
 
-    return logger;
+    return logger as log.Logger;
 };
 
 export default logger;

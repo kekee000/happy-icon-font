@@ -7,9 +7,8 @@ export const enum PageRole {
 }
 
 export interface AppState {
-    fileKey: string;
     initCommand: {command: string};
     currentPage: PageRole;
-    selectedLayerSnapshots?: string[];
     selectedLayerIds?: string[];
+    pluginSettings: HappyIconFont.PluginSettings;
 }

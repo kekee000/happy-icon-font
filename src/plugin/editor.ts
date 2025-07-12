@@ -1,4 +1,6 @@
+import getLogger from '../common/logger';
 import {uiEvent} from './services/event/event-handler';
+const logger = getLogger('figma-plugin: editor');
 
 export default () => {
     let currentSelection: readonly SceneNode[] | undefined;
@@ -9,25 +11,57 @@ export default () => {
             figma.viewport.scrollAndZoomIntoView(nodes);
         },
 
-        getSelection(): string[] {
+        async getSelectionSVG(): Promise<Array<{name: string, svg: string}>> {
             if (!currentSelection) {
                 return [];
             }
-            const serializedNodes = currentSelection as SceneNode[];
-            return serializedNodes.map(i => i.id);
+            const promises: Promise<{name: string, svg: string}>[] = [];
+            currentSelection.forEach(node => {
+                let name = node.name.trim();
+                if (node.parent.type === 'FRAME' || node.parent.type === 'GROUP' || node.parent.type === 'COMPONENT' || node.parent.type === 'INSTANCE') {
+                    name = node.parent.name.trim();
+                }
+                promises.push((('outlineStroke' in node) && node.outlineStroke() || node).exportAsync({format: 'SVG'})
+                    .then(bytes => {
+                        return {
+                            name,
+                            svg: String.fromCharCode.apply(null, bytes),
+                        }
+                    })
+                    .catch((e) => {
+                        console.error('getSelectionSVG error', e);
+                        return {
+                            name,
+                            svg: '',
+                        };
+                    }));
+            });
+            const results = await Promise.all(promises);
+            return results;
         },
 
         figmaNotify(message: string, options = {}) {
             figma.notify(message, options);
         },
 
-        async getSelectionSnapshots(): Promise<string[]> {
-            if (!currentSelection) {
-                return [];
+        async setSettings(settings: HappyIconFont.PluginSettings) {
+            try {
+                await figma.clientStorage.setAsync('pluginSettings', settings);
             }
-            const snapshots = await Promise.all(currentSelection
-                .map((node) => node.exportAsync({format: 'SVG'}).then(bytes => String.fromCharCode.apply(null, bytes))));
-            return snapshots;
+            catch (error) {
+                logger.error('Error saving settings', error);
+            }
+        },
+
+        async getSettings() {
+            try {
+                const settings = await figma.clientStorage.getAsync('pluginSettings');
+                return settings || null;
+            }
+            catch (error) {
+                logger.error('Error getting settings', error);
+                return null;
+            }
         },
 
         openExternal(url: string) {

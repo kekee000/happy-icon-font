@@ -2,3 +2,42 @@
     width: 100%;
     box-sizing: border-box;
 }
+
+.svgContainer {
+    height: 455px;
+    padding-left: 30px;
+    overflow: auto;
+    display: flex;
+    flex-wrap: wrap;
+    >.svgItem {
+        width: 100px;
+        height: 100px;
+        margin: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+        >.name {
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 4px;
+        }
+        >.svg {
+            height: 80px;
+        }
+        svg {
+            height: 85%;
+        }
+    }
+}
+
+.actions {
+    text-align: right;
+    padding: 15px 0;
+    background: #f5f5f5;
+    border-top: 1px solid #eee;
+    >button {
+        margin-right: 15px;
+    }
+}

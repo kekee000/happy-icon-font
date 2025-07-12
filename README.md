@@ -7,3 +7,6 @@ Transform figma icons to font, or import font glyphs to figma.
 
 > pnpm i
 
+## Build
+
+> npm run build

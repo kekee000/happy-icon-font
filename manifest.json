@@ -14,11 +14,11 @@
     "devAllowedDomains": ["https://kekee000.github.io"]
   },
   "menu": [{
-      "name": "Export Icon",
+      "name": "Export Figma Icon to Font",
       "command": "Icon2Font"
     },
     {
-      "name": "Import Font Glyphs to Icon",
+      "name": "Import Font Glyphs to Figma",
       "command": "Font2Icon"
     }
   ]

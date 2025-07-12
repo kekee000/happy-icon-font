@@ -12,6 +12,7 @@ import {pluginEvent} from './services/event/event-handler';
 import * as store from './store';
 import Icon2Font from './pages/icon2font/Icon2Font';
 import Font2Icon from './pages/font2icon/Font2Icon';
+import pluginAPI from './services/plugin-api';
 
 pluginEvent.registerHandlers({
     async init(data: {initCommand: {command: PageRole};}) {
@@ -21,6 +22,11 @@ pluginEvent.registerHandlers({
             : PageRole.Font2Icon;
         store.setInited(data);
         store.setCurrentPage(pageRole);
+        const settings = await pluginAPI.getSettings();
+        console.debug('plugin settings', settings);
+        if (settings?.icon2FontSettings) {
+            store.setSettings(settings);
+        }
     },
     selectFigmaLayer(data) {
         store.selectedLayerIds(data.ids);
@@ -50,12 +56,12 @@ const App: React.FC = () => {
     const [tabsData] = useState([
         {
             key: PageRole.Icon2Font,
-            label: `Convert Icon to Font`,
+            label: `Export Figma Icon to Font`,
             icon: <FormOutlined />,
         },
         {
             key: PageRole.Font2Icon,
-            label: `Import Font Glyphs to Icon`,
+            label: `Import Font Glyphs to Figma`,
             icon: <FontColorsOutlined />,
         }
     ]);

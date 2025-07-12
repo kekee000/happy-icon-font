@@ -7,13 +7,10 @@ import { AppState } from "ui/types/app";
 export const appStateAtom = atom({
     initCommand: null,
     currentPage: null,
-    fileKey: '',
-    figmaUser: {
-        id: '',
-        name: '',
-        photoURL: '',
-        color: '',
-    },
-    selectedLayerSnapshots: null,
     selectedLayerIds: [],
+    pluginSettings: {
+        icon2FontSettings: {
+            fontFamily: 'fonteditor',
+        },
+    },
 } as AppState);
