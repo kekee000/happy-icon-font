@@ -29,26 +29,8 @@ pluginEvent.registerHandlers({
         }
     },
     selectFigmaLayer(data) {
-        store.selectedLayerIds(data.ids);
+        store.selectedLayerIds(data.ids || []);
     },
-});
-
-const Router: React.FC = React.memo(() => {
-    const [appState] = useAtom(appStateAtom);
-
-    // figma 只有一个 iframe，不能用 react router，这里参考社区方案用状态实现 single page 路由
-    // https://forum.figma.com/t/how-to-work-with-react-router-dom-in-figma-plugin/2450/4
-    switch (appState.currentPage) {
-        case PageRole.Icon2Font: {
-            return <Icon2Font />;
-        }
-        case PageRole.Font2Icon: {
-            return <Font2Icon />;
-        }
-        default: {
-            return null;
-        }
-    }
 });
 
 const App: React.FC = () => {
@@ -58,11 +40,13 @@ const App: React.FC = () => {
             key: PageRole.Icon2Font,
             label: `Export Figma Icon to Font`,
             icon: <FormOutlined />,
+            children: <Icon2Font />,
         },
         {
             key: PageRole.Font2Icon,
             label: `Import Font Glyphs to Figma`,
             icon: <FontColorsOutlined />,
+            children: <Font2Icon />,
         }
     ]);
     const select = useCallback((type: string) => {
@@ -76,14 +60,11 @@ const App: React.FC = () => {
 
     return (
         <div className={styles.app}>
-            <div className={styles.appTop}>
-                 <Tabs
-                    activeKey={appState.currentPage}
-                    items={tabsData}
-                    onChange={select}
-                />
-            </div>
-            <div className={styles.appPage}>{appState.initCommand ? <Router /> : '初始化中...'} </div>
+            <Tabs
+                activeKey={appState.currentPage}
+                items={tabsData}
+                onChange={select}
+            />
         </div>
     );
 };

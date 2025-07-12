@@ -1,6 +1,12 @@
 import {createFont, FontEditor, TTF, default as utils} from 'fonteditor-core';
 import JSZip from 'jszip';
 import exportRender from './exportRender';
+import contours2svg from 'fonteditor-core/lib/ttf/util/contours2svg.js';
+import {computePathBox} from 'fonteditor-core/lib/graphics/computeBoundingBox.js';
+import pathsUtil from 'fonteditor-core/lib/graphics/pathsUtil.js';
+import getLogger from '../../common/logger';
+
+const logger = getLogger('fonteditor');
 
 const whenWoff2Ready = Promise.race(
     [
@@ -9,12 +15,17 @@ const whenWoff2Ready = Promise.race(
     ]
 );
 
-export async function writeFontZip(ttf: TTF.TTFObject, fileName: string): Promise<Blob> {
+export function getOnlineEditorUrl(from = 'figma'): string {
+    return `https://kekee000.github.io/fonteditor/index.html?from=${from}`;
+}
+
+export async function writeFontZip(font: FontEditor.Font, fileName: string): Promise<Blob> {
     const zip = new JSZip();
     const fontzip = zip.folder('fonteditor');
     const fontTypes = ['svg', 'ttf', 'symbol'];
     let ttfFile: ArrayBuffer | null = null;
     let symbolText: string = '';
+    const ttf = font.get();
 
     fontTypes.forEach(function (fileType) {
         let name = fileName + '.' + fileType;
@@ -70,15 +81,15 @@ export async function writeFontZip(ttf: TTF.TTFObject, fileName: string): Promis
     return fontzip.generateAsync({type: 'blob'});
 }
 
-export function createFontFromSvg(svgs: Array<{name: string, svg: string}>, fontFamily: string): TTF.TTFObject {
+export function createFontFromSvg(svgs: Array<{name: string, svg: string}>, fontFamily: string): FontEditor.Font {
     const glyphs = svgs.map(svg => {
     const font = utils.createFont(svg.svg, {
             type: 'svg',
             combinePath: true,
         });
         const glyph = font.get().glyf[0];
-        if (/^[\w+-]+$/.test(svg.name)) {
-            (glyph as any)._name = svg.name.toLowerCase();
+        if (/[\w+-]+/.test(svg.name)) {
+            (glyph as any)._name = svg.name;
         }
         return glyph;
     });
@@ -101,5 +112,79 @@ export function createFontFromSvg(svgs: Array<{name: string, svg: string}>, font
         adjustToEmBox: true,
         adjustToEmPadding: 100,
     });
-    return ttfHelper.get();
+    const ttf = font.get();
+    logger.debug('parseFontFileToSvg', ttf);
+    return font;
+}
+
+interface ScaleGlyphsToIconOptions {
+    iconSize: number;
+    unitsPerEm: number;
+    decent: number;
+}
+
+function scaleGlyphsToIcon(contours: TTF.Contour[], options: ScaleGlyphsToIconOptions): TTF.Contour[] {
+    const {iconSize, unitsPerEm, decent} = options;
+    pathsUtil.flip(contours);
+    const boundingBox = computePathBox(...contours) as {x: number, y: number, width: number, height: number};
+    const x = (unitsPerEm - boundingBox.width) / 2;
+    const y = (unitsPerEm - boundingBox.height) / 2;;
+    pathsUtil.move(contours, x, y);
+
+    const scale = iconSize / unitsPerEm * 0.9;
+    const scaledContours = contours.map(contour => {
+        return contour.map(point => {
+            return {
+                x: point.x * scale,
+                y: point.y * scale,
+                onCurve: point.onCurve,
+            };
+        });
+    });
+    return scaledContours;
+}
+
+function glyphToSvg(glyph: TTF.Glyph, options: ScaleGlyphsToIconOptions): string {
+    const {iconSize} = options;
+    const svgPath = contours2svg(scaleGlyphsToIcon(structuredClone(glyph.contours), options));
+    const svg = `<svg viewbox="0 0 ${iconSize} ${iconSize}">`
+        +           `<path d="${svgPath}"/>`
+        +       '</svg>';
+    return svg;
+}
+
+/** glyph to icon size */
+export const ICON_SIZE = 90;
+
+export interface FontSvg {
+    id: string;
+    name: string;
+    svg: string;
+    unicode?: number;
+}
+
+
+export function parseFontFileToSvg(file: ArrayBuffer, fileType: string): FontSvg[] {
+    if (!['ttf', 'otf', 'woff', 'woff2', 'svg'].includes(fileType)) {
+        throw new Error(`Unsupported font file type: ${fileType}`);
+    }
+    const ttf = utils.createFont(file, {
+        type: fileType as FontEditor.FontType,
+        compound2simple: true,
+        combinePath: true,
+    }).get();
+
+    const unitsPerEm = ttf.head.unitsPerEm;
+    const glyphs = ttf.glyf.filter(glyph => (glyph.advanceWidth > 0 && glyph.contours?.length > 0 && glyph.contours[0].length > 1));
+    logger.debug('parseFontFileToSvg glyphs:', glyphs.length);
+
+    const svgs = glyphs.map(glyph => {
+        return {
+            name: glyph.name || (glyph.unicode?.[0] ? `uni${glyph.unicode[0].toString(16).toUpperCase()}` : ''),
+            unicode: glyph.unicode?.[0] || 0,
+            svg: glyphToSvg(glyph, {iconSize: ICON_SIZE, unitsPerEm, decent: ttf.hhea.descent}),
+            id: Math.random().toString(36).substring(2, 15)
+        }
+    });
+    return svgs;
 }

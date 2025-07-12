@@ -4,6 +4,7 @@ html, body {
     padding: 0;
     width: 100%;
     height: 100%;
+    overflow: hidden;
 }
 
 #app, .app {
@@ -11,10 +12,6 @@ html, body {
     height: 100%;
 }
 
-.appTop {
-    :global(.ant-tabs .ant-tabs-nav-wrap) {
-        padding-left: 20px;
-    }
-}
-.appPage {
+.app :global(.ant-tabs .ant-tabs-nav-wrap) {
+    padding-left: 20px;
 }

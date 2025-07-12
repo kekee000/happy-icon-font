@@ -1,11 +1,22 @@
 declare namespace HappyIconFont {
     export interface PluginAPI {
         selectNodes(ids: string[]): Promise<void>;
-        getSelectionSVG(): Promise<Array<{name: string, svg: string}>>;
+        getSelectionSVG(): Promise<Array<SVGData>>;
         figmaNotify(message: string, options?: {}): void;
         openExternal(url: string): void;
         setSettings(settings: PluginSettings): Promise<void>;
         getSettings(): Promise<PluginSettings | null>;
+        importSvgToFigma(svg: SVGData): void;
+    }
+
+    export interface SVGData {
+        id: string;
+        name: string;
+        svg: string;
+        width: number;
+        height: number;
+        x?: number;
+        y?: number;
     }
 
     export interface PluginSettings {

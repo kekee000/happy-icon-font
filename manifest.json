@@ -9,9 +9,9 @@
   "permissions": ["currentuser"],
   "documentAccess": "dynamic-page",
   "networkAccess": {
-    "allowedDomains": ["https://kekee000.github.io"],
-    "reasoning": "online font editor",
-    "devAllowedDomains": ["https://kekee000.github.io"]
+    "allowedDomains": ["https://kekee000.github.io", "https://cdnjs.cloudflare.com"],
+    "reasoning": "online font import",
+    "devAllowedDomains": ["https://kekee000.github.io", "https://cdnjs.cloudflare.com"]
   },
   "menu": [{
       "name": "Export Figma Icon to Font",

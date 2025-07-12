@@ -5,7 +5,8 @@ import { appStateAtom } from 'ui/models/app';
 import pluginAPI from 'ui/services/plugin-api';
 import { Button, Form, Input, Modal } from 'antd';
 import { DownloadOutlined, EditOutlined, SettingFilled } from '@ant-design/icons';
-import { createFontFromSvg, writeFontZip } from 'ui/font';
+import { createFontFromSvg, getOnlineEditorUrl, writeFontZip } from 'ui/font';
+import { isInFigmaApp } from 'ui/common/utils';
 
 
 function downloadBlob(buffer: BlobPart, filename: string) {
@@ -68,12 +69,17 @@ const Icon2FontPage: React.FC = () => {
     const [appState] = useAtom(appStateAtom);
     const [showSettings, setShowSettings] = useState(false);
 
-    const [svgs, setSvgs] = React.useState<Array<{name: string, svg: string}>>([]);
+    const [svgs, setSvgs] = React.useState<Array<HappyIconFont.SVGData>>([]);
     useEffect(() => {
         (async() => {
-            if (appState.selectedLayerIds?.length) {
-                const svgs = await pluginAPI.getSelectionSVG();
-                setSvgs(svgs);
+            if (appState.selectedLayerIds.length) {
+               try {
+                    const svgs = await pluginAPI.getSelectionSVG();
+                    setSvgs(svgs);
+               }
+               catch (e) {
+                    setSvgs([]);
+               }
             }
             else {
                 setSvgs([]);
@@ -93,7 +99,20 @@ const Icon2FontPage: React.FC = () => {
             downloadBlob(fontBuffer, `${fontFamily}.zip`);
 
         } catch (error) {
+            console.error('Error creating font', error);
             pluginAPI.figmaNotify(`Error downloading font: ${fontFamily}`, {timeout: 2000});
+        }
+    };
+
+    const editFontOnline = () => {
+        if (isInFigmaApp()) {
+            const url = getOnlineEditorUrl();
+            pluginAPI.openExternal(url);
+            return;
+        }
+        // connect to online editor
+        else {
+
         }
     };
 
@@ -112,18 +131,21 @@ const Icon2FontPage: React.FC = () => {
     return (
         <div className={styles.container}>
             <div className={styles.svgContainer}>
-               {svgs.map(svg => {
+            {
+                svgs.length ? svgs.map(svg => {
                     return (
-                        <div className={styles.svgItem} key={svg.name}>
+                        <div className={styles.svgItem} key={svg.id}>
                             <div title={svg.name} className={styles.name}>{svg.name}</div>
                             <div className={styles.svg} dangerouslySetInnerHTML={{__html: svg.svg}} />
                         </div>
                     );
-                })}
+                })
+                : <div className={styles.svgEmpty}>Please Select Icons in Figma.</div>
+            }
             </div>
             <div className={styles.actions}>
                 <Button type="primary" title='Download ttf, woff2 and icon examples' onClick={downloadFont} shape="round" icon={<DownloadOutlined />} size="middle">Download</Button>
-                <Button type="default" title='Edit ttf font with online FontEditor' shape="round" icon={<EditOutlined />} size="middle">Edit Font Online</Button>
+                <Button type="default" title='Edit ttf font with online FontEditor' onClick={editFontOnline} shape="round" icon={<EditOutlined />} size="middle">Edit Font Online</Button>
                 <Button shape="circle" title='Font settings' onClick={openFontSettings} icon={<SettingFilled />} />
             </div>
             <SettingsDialog show={showSettings} onOK={onSettingsOk} onCancel={onSettingsCancel} />

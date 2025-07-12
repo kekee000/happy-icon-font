@@ -1,4 +1,42 @@
-.container {
-    width: 100%;
-    box-sizing: border-box;
+@import '../css/common.less';
+
+.svgContainer {
+    .pickFontFile {
+        flex: 1;
+        color: #999;
+        text-align: center;
+        margin-top: 60px;
+    }
+    .pickFontFileText {
+        margin-top: 10px;
+        font-size: 14px;
+    }
+    .pickFontFileBtn {
+        margin: 0 auto;
+        width: 150px;
+        height: 150px;
+        color: #666;
+        font-size: 88px;
+        border: 1px dashed #999;
+        cursor: pointer;
+        user-select: none;
+        &:hover {
+            border-color: #1677ff;
+        }
+
+    }
+
+    .onlineFonts {
+        width: 100%;
+        >h4 {
+            margin: 20px 14px 5px;
+        }
+    }
+}
+
+.actions {
+    :global(.ant-pagination.ant-pagination-simple) {
+        float: left;
+        margin: 5px;
+    }
 }

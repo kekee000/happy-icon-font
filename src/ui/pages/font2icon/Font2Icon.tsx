@@ -1,13 +1,238 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import styles from './Font2Icon.module.less';
-import { useAtom } from 'jotai';
-import { appStateAtom } from 'ui/models/app';
+import { Button, Input, Pagination} from 'antd';
+import { LoadingOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import pluginAPI from 'ui/services/plugin-api';
+import { parseFontFileToSvg, ICON_SIZE, FontSvg } from 'ui/font';
+import { debounce, set} from 'lodash-es';
+
+const onlineFontList = [
+    {
+        name: 'Font Awesome',
+        url: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-brands-400.ttf',
+    },
+    {
+        name: 'Bootstrap Icons',
+        url: 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.13.1/font/fonts/bootstrap-icons.woff2',
+    },
+    {
+        name: 'Font Editor',
+        url: 'https://kekee000.github.io/fonteditor/font/fonteditor.ttf',
+    },
+];
+
+function getExtName(fileName: string): string {
+    return fileName.match(/\.(ttf|otf|woff|woff2)$/i)?.[1]?.toLowerCase() || '';
+}
+
+const DisplaySvgList: React.FC<{ svgs: FontSvg[] }> = ({ svgs }) => {
+    const importToFigma = (svg: FontSvg) => {
+        pluginAPI.importSvgToFigma({
+            id: svg.id,
+            name: svg.name,
+            svg: svg.svg,
+            width: ICON_SIZE,
+            height: ICON_SIZE,
+        });
+    };
+
+    const onDropSvg = (e, svg: FontSvg) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.view.length === 0) {
+            return;
+        }
+        const clientX = e.clientX || 0;
+        const clientY = e.clientY || 0;
+        window.parent.postMessage(
+            {
+                pluginDrop: {
+                    clientX,
+                    clientY,
+                    items: [],
+                    dropMetadata: {
+                        name: svg.name,
+                        svg: svg.svg,
+                        width: ICON_SIZE,
+                        height: ICON_SIZE,
+                    }
+                }
+            },
+            '*'
+        );
+    };
+
+    return (<>
+        {svgs.map((svg) => {
+            return (
+                <div className={styles.svgItem} key={svg.id}>
+                    <div title={svg.name} className={styles.name}>{svg.name}</div>
+                    <div draggable
+                        onDragEnd={e => onDropSvg(e, svg)}
+                        onClick={()=> importToFigma(svg)}
+                        title='click or drag into figma'
+                        className={styles.svg}
+                        dangerouslySetInnerHTML={{__html: svg.svg}} />
+                </div>
+            );
+        })}
+    </>);
+};
+
+const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> = ({onFontParsed}) => {
+    const [onlineFonts, setOnlineFonts] = React.useState(onlineFontList);
+    const [loadding, setLoading] = React.useState(false);
+
+    const doPickFontFile = () => {
+        if (loadding) {
+            return;
+        }
+        const input = document.getElementById('pickFontFile') as HTMLInputElement;
+        input.click();
+    };
+
+    const onPickFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (loadding) {
+            return;
+        }
+        const file = event.target.files?.[0];
+        if (file) {
+            setLoading(true);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const buffer = e.target?.result as ArrayBuffer;
+                    const extName = getExtName(file.name);
+                    if (!extName) {
+                        pluginAPI.figmaNotify(`Not support file type ${file.name}`, {timeout: 2000});
+                        return;
+                    }
+                    const svgs = parseFontFileToSvg(buffer, extName);
+                    onFontParsed(svgs);
+                }
+                catch (e) {
+                    pluginAPI.figmaNotify(`Error parsing font file: ${e.message}`, {timeout: 2000});
+                }
+                finally {
+                    setLoading(false);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+            console.error('No file selected');
+        }
+    };
+
+    const loadOnlineFont = async (font: {name: string, url: string}) => {
+        try {
+            setLoading(true);
+            const response = await fetch(font.url);
+            if (!response.ok) {
+                pluginAPI.figmaNotify(`Failed to load font: ${font.name}`, {timeout: 2000});
+                return;
+            }
+            const buffer = await response.arrayBuffer();
+            const extName = getExtName(font.url);
+            const svgs = parseFontFileToSvg(buffer, extName);
+            onFontParsed(svgs);
+        } catch (e) {
+            console.error(`Error loading online font ${font.name}:`, e);
+            pluginAPI.figmaNotify(`Error parsing font file: ${e.message}`, {timeout: 2000});
+            return;
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+
+    return  (<>
+        <div className={styles.pickFontFile}>
+            <input accept='.ttf,.otf,.woff,.woff2,.svg' onChange={onPickFile} style={{display: 'none'}} name='fontFile' id="pickFontFile" type="file"></input>
+            <div onClick={doPickFontFile} className={styles.pickFontFileBtn}>
+                {loadding ? <LoadingOutlined style={{marginTop: 30}}/> : '+'}
+            </div>
+            <div className={styles.pickFontFileText}>Click to pick a font file.</div>
+            <div className={styles.pickFontFileText}>Support ttf, woff, woff2, font svg.</div>
+        </div>
+        <div className={styles.onlineFonts}>
+            <h4>Use Online Font Icons.</h4>
+            <div>
+            {onlineFonts.map((font, index) => (
+                <Button
+                    title={`Load online ${font.name} font`}
+                    key={index}
+                    type="link"
+                    onClick={() => loadOnlineFont(font)}
+                >
+                    {font.name}
+                </Button>
+            ))}
+            </div>
+        </div>
+    </>);
+};
 
 const FontToIconPage: React.FC = () => {
-    const [appState] = useAtom(appStateAtom);
+    const pageSize = 1000;
+    const [searchText, setSearchText] = React.useState('');
+    const [svgs, setSvgs] = React.useState<FontSvg[]>([]);
+    const [page, setPage] = React.useState(1);
+    const svgContainerRef = React.useRef<HTMLDivElement>(null);
+    const onPageChange = React.useCallback((page: number) => {
+        setPage(page);
+        svgContainerRef.current?.scrollTo({
+            top: 0,
+            behavior: 'auto',
+        });
+    }, []);
+
+    const resetFontFile = React.useCallback(() => {
+        setSvgs([]);
+        setSearchText('');
+        setPage(1);
+    }, []);
+
+    const doSearch = React.useCallback(debounce((value: string) => {
+        setSearchText(value);
+        setPage(1);
+        svgContainerRef.current?.scrollTo({
+            top: 0,
+            behavior: 'auto',
+        });
+    }, 200), []);
+
+    const filtedSvgs = React.useMemo(() => {
+        if (!searchText) {
+            return svgs;
+        }
+        const unicode = new Set(Array.from(searchText).map(char => char.codePointAt(0)));
+        return svgs.filter(svg => svg.name.includes(searchText)|| unicode.has(svg.unicode));
+    }, [searchText, svgs]);
+
     return (
         <div className={styles.container}>
-            Font2Icon {appState.currentPage}
+            <div className={styles.svgContainer} ref={svgContainerRef}>
+            {
+                svgs.length
+                    ? <DisplaySvgList svgs={filtedSvgs.slice((page - 1) * pageSize, page * pageSize)} />
+                    : <DisplayPickFontFile onFontParsed={setSvgs} />
+            }
+            </div>
+            <div className={styles.actions}>
+                {svgs.length ? <>
+                    {filtedSvgs.length > pageSize
+                        ? <Pagination simple current={page} pageSize={pageSize} total={filtedSvgs.length} onChange={onPageChange} />
+                        : null
+                    }
+                    <Input
+                        placeholder="Search"
+                        prefix={<SearchOutlined />}
+                        onChange={e => doSearch(e.target.value)}
+                        style={{ width: 200, marginRight: 20 }}
+                    />
+                </> : null}
+                <Button shape="circle" title='Reset font file' onClick={resetFontFile} icon={<ReloadOutlined />} />
+            </div>
         </div>
     );
 };

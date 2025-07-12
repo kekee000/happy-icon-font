@@ -8,7 +8,7 @@ const logger = (name: string) => {
 
     switch (process.env.NODE_ENV) {
         case 'development': {
-            log.setLevel('info');
+            log.setLevel('debug');
             break;
         }
         case 'test': {

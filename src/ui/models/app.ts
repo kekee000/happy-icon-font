@@ -10,7 +10,7 @@ export const appStateAtom = atom({
     selectedLayerIds: [],
     pluginSettings: {
         icon2FontSettings: {
-            fontFamily: 'fonteditor',
+            fontFamily: 'iconfont',
         },
     },
 } as AppState);

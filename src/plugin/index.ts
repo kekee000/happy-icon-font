@@ -2,7 +2,7 @@ import getLogger from '../common/logger';
 import injectEditorServices from './editor';
 
 figma.showUI(__html__);
-figma.ui.resize(800, 580);
+figma.ui.resize(500, 600);
 
 (() => {
     if (figma.editorType === 'figma') {
