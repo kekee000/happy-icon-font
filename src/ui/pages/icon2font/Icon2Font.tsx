@@ -5,9 +5,8 @@ import { appStateAtom } from 'ui/models/app';
 import pluginAPI from 'ui/services/plugin-api';
 import { Button, Form, Input, Modal } from 'antd';
 import { DownloadOutlined, EditOutlined, SettingFilled } from '@ant-design/icons';
-import { createFontFromSvg, getOnlineEditorUrl, writeFontZip } from 'ui/font';
+import { createFontFromSvg, getOnlineConnectUrl, getOnlineEditorUrl, writeFontZip } from 'ui/font';
 import { isInFigmaApp } from 'ui/common/utils';
-
 
 function downloadBlob(buffer: BlobPart, filename: string) {
     const blob = new Blob([buffer]);
@@ -33,7 +32,13 @@ const SettingsDialog: React.FC<{
         wrapperCol: { span: 14 },
     };
 
-    const onOk = () => {
+    const onOk = async () => {
+        try {
+            await form.validateFields();
+        }
+        catch (e) {
+            return;
+        }
         const settings = form.getFieldsValue();
         const pluginSettings = {
             ...appState.pluginSettings,
@@ -57,13 +62,17 @@ const SettingsDialog: React.FC<{
                 form={form}
                 initialValues={{ fontFamily: appState.pluginSettings.icon2FontSettings.fontFamily }}
                 >
-                <Form.Item label="FontFamily" name="fontFamily">
+                <Form.Item label="FontFamily"
+                    name="fontFamily"
+                    rules={[{required: true, pattern: /^[a-zA-Z0-9_-]+$/g, message: 'Font family should only contain letters, numbers, \'-\', \'_\'.'}, {type: 'string', max: 100, min: 2}]}>
                     <Input placeholder="input font family" />
                 </Form.Item>
             </Form>
       </Modal>
     );
 }
+
+const isInFigma = isInFigmaApp();
 
 const Icon2FontPage: React.FC = () => {
     const [appState] = useAtom(appStateAtom);
@@ -104,15 +113,28 @@ const Icon2FontPage: React.FC = () => {
         }
     };
 
-    const editFontOnline = () => {
-        if (isInFigmaApp()) {
-            const url = getOnlineEditorUrl();
-            pluginAPI.openExternal(url);
+    const editFontOnline = async () => {
+        const fontFamily = appState.pluginSettings.icon2FontSettings.fontFamily || 'fonteditor';
+        if (isInFigma) {
+            pluginAPI.openExternal(getOnlineEditorUrl());
             return;
         }
-        // connect to online editor
-        else {
 
+        try {
+            pluginAPI.openExternal(getOnlineConnectUrl());
+            await new Promise(resolve => setTimeout(resolve, 1600));
+            const font = createFontFromSvg(svgs, fontFamily);
+            window.postMessage({
+                type: 'create-font',
+                data: {
+                    fontFamily: appState.pluginSettings.icon2FontSettings.fontFamily || 'fonteditor',
+                    ttfObject: font.get(),
+                }
+            },  '*');
+        }
+        catch (e) {
+            console.error('Error creating font for online editor', e);
+            pluginAPI.figmaNotify(`Error creating font for online editor: ${fontFamily}`, {timeout: 2000});
         }
     };
 
@@ -140,7 +162,7 @@ const Icon2FontPage: React.FC = () => {
                         </div>
                     );
                 })
-                : <div className={styles.svgEmpty}>Please Select Icons in Figma.</div>
+                : <div className={styles.svgEmpty}>Please Select Icons in Figma Canvas.</div>
             }
             </div>
             <div className={styles.actions}>

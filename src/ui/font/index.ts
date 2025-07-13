@@ -15,8 +15,15 @@ const whenWoff2Ready = Promise.race(
     ]
 );
 
+export const onlineEditorUrl = 'https://kekee000.github.io/fonteditor';
+
 export function getOnlineEditorUrl(from = 'figma'): string {
-    return `https://kekee000.github.io/fonteditor/index.html?from=${from}`;
+    const lang = (window.navigator.language || 'zh-cn').toLowerCase();
+    return `${onlineEditorUrl}/${lang === 'zh-cn' ? 'index' : 'index-en'}.html?from=${from}`;
+}
+
+export function getOnlineConnectUrl(from = 'figma'): string {
+    return `${onlineEditorUrl}/connect.html?from=${from}`;
 }
 
 export async function writeFontZip(font: FontEditor.Font, fileName: string): Promise<Blob> {
@@ -187,4 +194,8 @@ export function parseFontFileToSvg(file: ArrayBuffer, fileType: string): FontSvg
         }
     });
     return svgs;
+}
+
+export function fontToBase64(font: FontEditor.Font): string {
+    return utils.ttf2base64(font.write({type: 'ttf'}) as ArrayBuffer);
 }

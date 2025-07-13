@@ -6,7 +6,7 @@ import {useAtom} from 'jotai';
 import {Tabs} from 'antd';
 import {
     FormOutlined,
-    FontColorsOutlined,
+    AppstoreAddOutlined,
 } from '@ant-design/icons';
 import {pluginEvent} from './services/event/event-handler';
 import * as store from './store';
@@ -45,7 +45,7 @@ const App: React.FC = () => {
         {
             key: PageRole.Font2Icon,
             label: `Import Font Glyphs to Figma`,
-            icon: <FontColorsOutlined />,
+            icon: <AppstoreAddOutlined />,
             children: <Font2Icon />,
         }
     ]);
