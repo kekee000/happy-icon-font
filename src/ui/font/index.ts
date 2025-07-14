@@ -15,15 +15,15 @@ const whenWoff2Ready = Promise.race(
     ]
 );
 
-export const onlineEditorUrl = 'https://kekee000.github.io/fonteditor';
+export const onlineEditorBase = 'https://kekee000.github.io/fonteditor';
 
 export function getOnlineEditorUrl(from = 'figma'): string {
     const lang = (window.navigator.language || 'zh-cn').toLowerCase();
-    return `${onlineEditorUrl}/${lang === 'zh-cn' ? 'index' : 'index-en'}.html?from=${from}`;
+    return `${onlineEditorBase}/${lang === 'zh-cn' ? 'index' : 'index-en'}.html?from=${from}`;
 }
 
 export function getOnlineConnectUrl(from = 'figma'): string {
-    return `${onlineEditorUrl}/connect.html?from=${from}`;
+    return `${onlineEditorBase}/connect.html?from=${from}`;
 }
 
 export async function writeFontZip(font: FontEditor.Font, fileName: string): Promise<Blob> {

@@ -5,8 +5,9 @@ import { appStateAtom } from 'ui/models/app';
 import pluginAPI from 'ui/services/plugin-api';
 import { Button, Form, Input, Modal } from 'antd';
 import { DownloadOutlined, EditOutlined, SettingFilled } from '@ant-design/icons';
-import { createFontFromSvg, getOnlineConnectUrl, getOnlineEditorUrl, writeFontZip } from 'ui/font';
+import { createFontFromSvg, getOnlineConnectUrl, getOnlineEditorUrl, onlineEditorBase, writeFontZip } from 'ui/font';
 import { isInFigmaApp } from 'ui/common/utils';
+import { set } from 'lodash-es';
 
 function downloadBlob(buffer: BlobPart, filename: string) {
     const blob = new Blob([buffer]);
@@ -72,7 +73,7 @@ const SettingsDialog: React.FC<{
     );
 }
 
-const isInFigma = isInFigmaApp();
+const isInFigma = false; //isInFigmaApp();
 
 const Icon2FontPage: React.FC = () => {
     const [appState] = useAtom(appStateAtom);
@@ -120,11 +121,23 @@ const Icon2FontPage: React.FC = () => {
             return;
         }
 
+        let loadedListener: (event: MessageEvent) => void | null = null;
         try {
-            pluginAPI.openExternal(getOnlineConnectUrl());
-            await new Promise(resolve => setTimeout(resolve, 1600));
+            const editorWin = window.open(getOnlineConnectUrl(), 'fonteditor');
+            await new Promise((resolve) => {
+                window.addEventListener('message', loadedListener = (event: MessageEvent) => {
+                    if (onlineEditorBase.includes(event.origin) && event.data?.type === 'loaded') {
+                        resolve(true);
+                    }
+                });
+                setTimeout(() => {
+                    console.warn('Timeout waiting for online editor to load');
+                    resolve(false);
+                }, 3000);
+            });
+
             const font = createFontFromSvg(svgs, fontFamily);
-            window.postMessage({
+            editorWin.postMessage({
                 type: 'create-font',
                 data: {
                     fontFamily: appState.pluginSettings.icon2FontSettings.fontFamily || 'fonteditor',
@@ -135,6 +148,10 @@ const Icon2FontPage: React.FC = () => {
         catch (e) {
             console.error('Error creating font for online editor', e);
             pluginAPI.figmaNotify(`Error creating font for online editor: ${fontFamily}`, {timeout: 2000});
+        }
+        finally {
+            loadedListener && window.removeEventListener('message', loadedListener);
+            loadedListener = null;
         }
     };
 
