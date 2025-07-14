@@ -1,9 +1,9 @@
 import getLogger from '../../../common/logger';
-import { EventMessage, EventProxy } from '../../../common/EventProxy';
+import {EventMessage, EventProxy} from '../../../common/EventProxy';
 
 class PluginEventProxy extends EventProxy {
     name: string = 'uiToPlugin';
-    _sendEvent(event: EventMessage) {
+    _sendEvent(event: EventMessage): void {
         window.parent.postMessage({pluginMessage: event}, '*');
     }
 }

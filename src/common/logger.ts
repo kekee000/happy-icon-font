@@ -1,7 +1,7 @@
 import prefix from 'loglevel-plugin-prefix';
 import log from 'loglevel';
 
-const logger = (name: string) => {
+const logger = (name: string): log.Logger => {
     let logger = log.noConflict();
     const prefixer = (prefix as any).noConflict();
     prefix.reg(logger);

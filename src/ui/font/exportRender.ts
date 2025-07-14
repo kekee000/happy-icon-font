@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /**
  * @file html渲染器
  * @author mengke01(kekee000@gmail.com)

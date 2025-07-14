@@ -28,7 +28,7 @@ export abstract class EventProxy extends EventEmitter implements IEventProxy {
     protected callbackMap: Map<string, (error: Error | null, data: any) => any> = new Map();
     protected handlerMap: Map<string, (data: any) => any> = new Map();
 
-    send<T>(message: EventMessage, cb?: (err: Error, data: T) => void) {
+    send<T>(message: EventMessage, cb?: (err: Error, data: T) => void): void {
         const logger = getLogger(`figma-sendEvent: ${this.name}`);
         const event: InnerEventMessage = {
             type: message.type,
@@ -45,7 +45,7 @@ export abstract class EventProxy extends EventEmitter implements IEventProxy {
 
     abstract _sendEvent(event: EventMessage): void;
 
-    sendCallback(callbackId: string, data: any, error?: Error) {
+    sendCallback(callbackId: string, data: any, error?: Error): void {
         const event: InnerEventMessage = {
             type: 'callback',
             _id: `${this.name}-cb-${callbackId}`,
@@ -56,13 +56,13 @@ export abstract class EventProxy extends EventEmitter implements IEventProxy {
         this._sendEvent(event);
     }
 
-    registerHandlers<T = Record<string, (data: any) => any>>(handlers: T) {
+    registerHandlers<T = Record<string, (data: any) => any>>(handlers: T): void {
         for (const [name, handler] of Object.entries(handlers)) {
             this.handlerMap.set(`${this.name}-handler-${name}`, handler);
         }
     }
 
-    _handleEvent(event: InnerEventMessage) {
+    _handleEvent(event: InnerEventMessage): void {
         const logger = getLogger(`figma-handleEvent: ${this.name}`);
         logger.debug(event.type, event._id);
         if (event.type === 'callback' && event._cb) {
@@ -73,7 +73,7 @@ export abstract class EventProxy extends EventEmitter implements IEventProxy {
             }
         }
         else {
-            let handlerName = `${this.name}-handler-${event.type}`;
+            const handlerName = `${this.name}-handler-${event.type}`;
             if (this.handlerMap.has(handlerName)) {
                 const handler = this.handlerMap.get(handlerName);
                 logger.debug(`handle event: ${event.type} with handler: ${handlerName}`);
@@ -81,6 +81,7 @@ export abstract class EventProxy extends EventEmitter implements IEventProxy {
                     let res: any;
                     let err: Error | undefined;
                     try {
+                        // eslint-disable-next-line prefer-spread
                         res = handler.apply(null, event.data || []);
                     }
                     catch (e) {

@@ -1,32 +1,19 @@
 import React from 'react';
 import styles from './Font2Icon.module.less';
-import { Button, Input, Pagination} from 'antd';
-import { LoadingOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import {Button, Input, Pagination} from 'antd';
+import {LoadingOutlined, ReloadOutlined, SearchOutlined} from '@ant-design/icons';
 import pluginAPI from 'ui/services/plugin-api';
-import { parseFontFileToSvg, ICON_SIZE, FontSvg } from 'ui/font';
-import { debounce, set} from 'lodash-es';
+import {parseFontFileToSvg, ICON_SIZE, FontSvg} from 'ui/font';
+import {debounce} from 'lodash-es';
+import {onlineFontList} from 'ui/common/config';
 
-const onlineFontList = [
-    {
-        name: 'Font Awesome',
-        url: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-brands-400.ttf',
-    },
-    {
-        name: 'Bootstrap Icons',
-        url: 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.13.1/font/fonts/bootstrap-icons.woff2',
-    },
-    {
-        name: 'Font Editor',
-        url: 'https://kekee000.github.io/fonteditor/font/fonteditor.ttf',
-    },
-];
 
 function getExtName(fileName: string): string {
     return fileName.match(/\.(ttf|otf|woff|woff2)$/i)?.[1]?.toLowerCase() || '';
 }
 
 const DisplaySvgList: React.FC<{ svgs: FontSvg[] }> = ({ svgs }) => {
-    const importToFigma = (svg: FontSvg) => {
+    const importToFigma = (svg: FontSvg): void => {
         pluginAPI.importSvgToFigma({
             id: svg.id,
             name: svg.name,
@@ -36,7 +23,7 @@ const DisplaySvgList: React.FC<{ svgs: FontSvg[] }> = ({ svgs }) => {
         });
     };
 
-    const onDropSvg = (e, svg: FontSvg) => {
+    const onDropSvg = (e, svg: FontSvg): void => {
         e.preventDefault();
         e.stopPropagation();
         if (e.view.length === 0) {
@@ -80,10 +67,9 @@ const DisplaySvgList: React.FC<{ svgs: FontSvg[] }> = ({ svgs }) => {
 };
 
 const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> = ({onFontParsed}) => {
-    const [onlineFonts, setOnlineFonts] = React.useState(onlineFontList);
     const [loadding, setLoading] = React.useState(false);
 
-    const doPickFontFile = () => {
+    const doPickFontFile = (): void => {
         if (loadding) {
             return;
         }
@@ -91,7 +77,7 @@ const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> =
         input.click();
     };
 
-    const onPickFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onPickFile = (event: React.ChangeEvent<HTMLInputElement>): void => {
         if (loadding) {
             return;
         }
@@ -110,8 +96,8 @@ const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> =
                     const svgs = parseFontFileToSvg(buffer, extName);
                     onFontParsed(svgs);
                 }
-                catch (e) {
-                    pluginAPI.figmaNotify(`Error parsing font file: ${e.message}`, {timeout: 2000});
+                catch (err) {
+                    pluginAPI.figmaNotify(`Error parsing font file: ${err.message}`, {timeout: 2000});
                 }
                 finally {
                     setLoading(false);
@@ -123,7 +109,7 @@ const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> =
         }
     };
 
-    const loadOnlineFont = async (font: {name: string, url: string}) => {
+    const loadOnlineFont = async (font: {name: string, url: string}): Promise<void> => {
         try {
             setLoading(true);
             const response = await fetch(font.url);
@@ -157,7 +143,7 @@ const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> =
         <div className={styles.onlineFonts}>
             <h4>Use Online Font Icons.</h4>
             <div>
-            {onlineFonts.map((font, index) => (
+            {onlineFontList.map((font, index) => (
                 <Button
                     title={`Load online ${font.name} font`}
                     key={index}

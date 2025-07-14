@@ -51,7 +51,7 @@ export async function writeFontZip(font: FontEditor.Font, fileName: string): Pro
 
     const woff2Ready = await whenWoff2Ready;
     if (woff2Ready) {
-        // woff2
+        // export woff2
         fontzip.file(
             fileName + '.woff2',
             utils.ttftowoff2(ttfFile)
@@ -59,7 +59,7 @@ export async function writeFontZip(font: FontEditor.Font, fileName: string): Pro
     }
 
     // icon
-    let iconData = utils.ttf2icon(ttf) as Record<string, any>;
+    const iconData = utils.ttf2icon(ttf) as Record<string, any>;
 
     // css
     fontzip.file(
@@ -88,6 +88,12 @@ export async function writeFontZip(font: FontEditor.Font, fileName: string): Pro
     return fontzip.generateAsync({type: 'blob'});
 }
 
+/**
+ * create font instance from figma svg 
+ * @param svgs figma svgs
+ * @param fontFamily font family
+ * @returns 
+ */
 export function createFontFromSvg(svgs: Array<{name: string, svg: string}>, fontFamily: string): FontEditor.Font {
     const glyphs = svgs.map(svg => {
     const font = utils.createFont(svg.svg, {
@@ -131,7 +137,7 @@ interface ScaleGlyphsToIconOptions {
 }
 
 function scaleGlyphsToIcon(contours: TTF.Contour[], options: ScaleGlyphsToIconOptions): TTF.Contour[] {
-    const {iconSize, unitsPerEm, decent} = options;
+    const {iconSize, unitsPerEm} = options;
     pathsUtil.flip(contours);
     const boundingBox = computePathBox(...contours) as {x: number, y: number, width: number, height: number};
     const x = (unitsPerEm - boundingBox.width) / 2;
@@ -170,7 +176,12 @@ export interface FontSvg {
     unicode?: number;
 }
 
-
+/**
+ * parse font file to figma svgs
+ * @param file font file arraybuffer
+ * @param fileType font file type @see FontEditor.FontType
+ * @returns 
+ */
 export function parseFontFileToSvg(file: ArrayBuffer, fileType: string): FontSvg[] {
     if (!['ttf', 'otf', 'woff', 'woff2', 'svg'].includes(fileType)) {
         throw new Error(`Unsupported font file type: ${fileType}`);
@@ -183,7 +194,7 @@ export function parseFontFileToSvg(file: ArrayBuffer, fileType: string): FontSvg
 
     const unitsPerEm = ttf.head.unitsPerEm;
     const glyphs = ttf.glyf.filter(glyph => (glyph.advanceWidth > 0 && glyph.contours?.length > 0 && glyph.contours[0].length > 1));
-    logger.debug('parseFontFileToSvg glyphs:', glyphs.length);
+    logger.info('parseFontFileToSvg glyphs:', glyphs.length);
 
     const svgs = glyphs.map(glyph => {
         return {

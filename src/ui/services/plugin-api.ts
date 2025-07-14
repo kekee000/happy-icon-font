@@ -1,5 +1,5 @@
 /**
- * @file plugin api
+ * @file plugin api proxy for ui
  */
 import {pluginEvent} from './event/event-handler';
 

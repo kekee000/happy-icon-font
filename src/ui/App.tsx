@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, {useCallback, useState} from 'react';
 import styles from './App.module.less';
 import {appStateAtom} from 'ui/models/app';
 import {PageRole} from './types/app';

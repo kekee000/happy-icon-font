@@ -1,8 +1,8 @@
 
 export const enum PageRole {
-    /** Icon2Font */
+    /** Icon2Font page */
     Icon2Font = 'Icon2Font',
-    /** Font2Icon */
+    /** Font2Icon page */
     Font2Icon = 'Font2Icon',
 }
 

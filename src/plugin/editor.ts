@@ -16,7 +16,7 @@ function sortSelection(selection: SceneNode[]): SceneNode[] {
     });
 }
 
-export default () => {
+export default (): void => {
     let currentSelection: readonly SceneNode[] | undefined;
     const pluginAPI: HappyIconFont.PluginAPI = {
         async selectNodes(ids: string[]) {
@@ -59,7 +59,7 @@ export default () => {
             return results;
         },
 
-        figmaNotify(message: string, options = {}) {
+        figmaNotify(message: string, options: NotificationOptions = {}) {
             figma.notify(message, options);
         },
 
@@ -168,6 +168,7 @@ export default () => {
         }
     });
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     figma.on('drop', (e: DropEvent) => {
         const svg = e.dropMetadata as HappyIconFont.SVGData;

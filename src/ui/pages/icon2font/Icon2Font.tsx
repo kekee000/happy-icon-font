@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import styles from './Icon2Font.module.less';
-import { useAtom } from 'jotai';
-import { appStateAtom } from 'ui/models/app';
+import {useAtom} from 'jotai';
+import {appStateAtom} from 'ui/models/app';
 import pluginAPI from 'ui/services/plugin-api';
-import { Button, Form, Input, Modal } from 'antd';
-import { DownloadOutlined, EditOutlined, SettingFilled } from '@ant-design/icons';
-import { createFontFromSvg, getOnlineConnectUrl, getOnlineEditorUrl, onlineEditorBase, writeFontZip } from 'ui/font';
-import { isInFigmaApp } from 'ui/common/utils';
-import { set } from 'lodash-es';
+import {Button, Form, Input, Modal} from 'antd';
+import {DownloadOutlined, EditOutlined, SettingFilled} from '@ant-design/icons';
+import {createFontFromSvg, getOnlineConnectUrl, getOnlineEditorUrl, onlineEditorBase, writeFontZip} from 'ui/font';
+import {isInFigmaApp} from 'ui/common/utils';
 
-function downloadBlob(buffer: BlobPart, filename: string) {
+function downloadBlob(buffer: BlobPart, filename: string): void {
     const blob = new Blob([buffer]);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -33,11 +32,11 @@ const SettingsDialog: React.FC<{
         wrapperCol: { span: 14 },
     };
 
-    const onOk = async () => {
+    const onOk = async (): Promise<void> => {
         try {
             await form.validateFields();
         }
-        catch (e) {
+        catch {
             return;
         }
         const settings = form.getFieldsValue();
@@ -65,7 +64,12 @@ const SettingsDialog: React.FC<{
                 >
                 <Form.Item label="FontFamily"
                     name="fontFamily"
-                    rules={[{required: true, pattern: /^[a-zA-Z0-9_-]+$/g, message: 'Font family should only contain letters, numbers, \'-\', \'_\'.'}, {type: 'string', max: 100, min: 2}]}>
+                    rules={[
+                        {
+                            required: true, pattern: /^[a-zA-Z0-9_-]+$/g, 
+                            message: 'Font family should only contain letters, numbers, \'-\', \'_\'.'
+                        }, 
+                        {type: 'string', max: 100, min: 2}]}>
                     <Input placeholder="input font family" />
                 </Form.Item>
             </Form>
@@ -73,7 +77,7 @@ const SettingsDialog: React.FC<{
     );
 }
 
-const isInFigma = false; //isInFigmaApp();
+const isInFigma = isInFigmaApp();
 
 const Icon2FontPage: React.FC = () => {
     const [appState] = useAtom(appStateAtom);
@@ -84,10 +88,9 @@ const Icon2FontPage: React.FC = () => {
         (async() => {
             if (appState.selectedLayerIds.length) {
                try {
-                    const svgs = await pluginAPI.getSelectionSVG();
-                    setSvgs(svgs);
+                    setSvgs(await pluginAPI.getSelectionSVG());
                }
-               catch (e) {
+               catch {
                     setSvgs([]);
                }
             }
@@ -97,7 +100,7 @@ const Icon2FontPage: React.FC = () => {
         })();
     }, [appState.selectedLayerIds]);
 
-    const downloadFont = async () => {
+    const downloadFont = async (): Promise<void> => {
         if (!svgs.length) {
             pluginAPI.figmaNotify('No SVGs selected to download', {timeout: 2000});
             return;
@@ -114,8 +117,9 @@ const Icon2FontPage: React.FC = () => {
         }
     };
 
-    const editFontOnline = async () => {
+    const editFontOnline = async (): Promise<void> => {
         const fontFamily = appState.pluginSettings.icon2FontSettings.fontFamily || 'fonteditor';
+        // figma app not support connect to fonteditor site
         if (isInFigma) {
             pluginAPI.openExternal(getOnlineEditorUrl());
             return;
@@ -155,15 +159,15 @@ const Icon2FontPage: React.FC = () => {
         }
     };
 
-    const openFontSettings = () => {
+    const openFontSettings = (): void => {
         setShowSettings(true);
     };
 
-    const onSettingsOk = () => {
+    const onSettingsOk = (): void => {
         setShowSettings(false);
     };
 
-    const onSettingsCancel = () => {
+    const onSettingsCancel = (): void => {
         setShowSettings(false);
     };
 

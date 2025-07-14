@@ -1,8 +1,8 @@
-import { atom } from "jotai";
-import { AppState } from "ui/types/app";
+import {atom} from "jotai";
+import {AppState} from "ui/types/app";
 
 /**
- * app 状态
+ * ui app state
  */
 export const appStateAtom = atom({
     initCommand: null,

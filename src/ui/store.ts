@@ -4,7 +4,7 @@ import {appStateAtom} from './models/app';
 
 export const store = createStore();
 
-export function setInited(inited: {initCommand: {command: string};}) {
+export function setInited(inited: {initCommand: {command: string};}): void {
     store.set(appStateAtom, old => {
         return {
             ...old,
@@ -14,7 +14,7 @@ export function setInited(inited: {initCommand: {command: string};}) {
 }
 
 
-export function setCurrentPage(page: PageRole) {
+export function setCurrentPage(page: PageRole): void {
     store.set(appStateAtom, old => {
         return {
             ...old,
@@ -23,7 +23,7 @@ export function setCurrentPage(page: PageRole) {
     });
 }
 
-export function setSettings(data: HappyIconFont.PluginSettings) {
+export function setSettings(data: HappyIconFont.PluginSettings): void {
     store.set(appStateAtom, old => {
         return {
             ...old,
@@ -32,7 +32,7 @@ export function setSettings(data: HappyIconFont.PluginSettings) {
     });
 }
 
-export function selectedLayerIds(ids: string[]) {
+export function selectedLayerIds(ids: string[]): void {
     store.set(appStateAtom, old => {
         return {
             ...old,

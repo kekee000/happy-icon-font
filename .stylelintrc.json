@@ -1,0 +1,6 @@
+{
+  "extends": "stylelint-config-standard-less",
+  "rules": {
+    "selector-class-pattern": null
+  }
+}
