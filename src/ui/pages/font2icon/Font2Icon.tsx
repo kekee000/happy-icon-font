@@ -66,6 +66,7 @@ const DisplaySvgList: React.FC<{ svgs: FontSvg[] }> = ({ svgs }) => {
     </>);
 };
 
+let abortLoadOnlineFont: AbortController | null = null;
 const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> = ({onFontParsed}) => {
     const [loadding, setLoading] = React.useState(false);
 
@@ -85,7 +86,7 @@ const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> =
         if (file) {
             setLoading(true);
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 try {
                     const buffer = e.target?.result as ArrayBuffer;
                     const extName = getExtName(file.name);
@@ -93,7 +94,7 @@ const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> =
                         pluginAPI.figmaNotify(`Not support file type ${file.name}`, {timeout: 2000});
                         return;
                     }
-                    const svgs = parseFontFileToSvg(buffer, extName);
+                    const svgs = await parseFontFileToSvg(buffer, extName);
                     onFontParsed(svgs);
                 }
                 catch (err) {
@@ -112,14 +113,15 @@ const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> =
     const loadOnlineFont = async (font: {name: string, url: string}): Promise<void> => {
         try {
             setLoading(true);
-            const response = await fetch(font.url);
+            abortLoadOnlineFont = new AbortController();
+            const response = await fetch(font.url, {signal: abortLoadOnlineFont.signal});
             if (!response.ok) {
-                pluginAPI.figmaNotify(`Failed to load font: ${font.name}`, {timeout: 2000});
+                pluginAPI.figmaNotify(`Failed to load font: ${font.name}`, {timeout: 5000});
                 return;
             }
             const buffer = await response.arrayBuffer();
             const extName = getExtName(font.url);
-            const svgs = parseFontFileToSvg(buffer, extName);
+            const svgs = await parseFontFileToSvg(buffer, extName);
             onFontParsed(svgs);
         } catch (e) {
             console.error(`Error loading online font ${font.name}:`, e);
@@ -127,13 +129,15 @@ const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> =
             return;
         }
         finally {
+            abortLoadOnlineFont = null;
             setLoading(false);
         }
     };
 
     return  (<>
         <div className={styles.pickFontFile}>
-            <input accept='.ttf,.otf,.woff,.woff2,.svg' onChange={onPickFile} style={{display: 'none'}} name='fontFile' id="pickFontFile" type="file"></input>
+            <input accept='.ttf,.otf,.woff,.woff2,.svg'
+                onChange={onPickFile} style={{display: 'none'}} name='fontFile' id="pickFontFile" type="file"></input>
             <div onClick={doPickFontFile} className={styles.pickFontFileBtn}>
                 {loadding ? <LoadingOutlined style={{marginTop: 30}}/> : '+'}
             </div>
@@ -158,8 +162,11 @@ const DisplayPickFontFile: React.FC<{onFontParsed: (svgs: FontSvg[]) => void}> =
     </>);
 };
 
+type PageState = 'pickFile' | 'displaySvgs';
+
 const FontToIconPage: React.FC = () => {
     const pageSize = 1000;
+    const [pageState, setPageState] = React.useState('pickFile' as PageState);
     const [searchText, setSearchText] = React.useState('');
     const [svgs, setSvgs] = React.useState<FontSvg[]>([]);
     const [page, setPage] = React.useState(1);
@@ -173,9 +180,22 @@ const FontToIconPage: React.FC = () => {
     }, []);
 
     const resetFontFile = React.useCallback(() => {
-        setSvgs([]);
-        setSearchText('');
-        setPage(1);
+        if (pageState === 'displaySvgs') {
+            setSvgs([]);
+            setSearchText('');
+            setPage(1);
+            setPageState('pickFile');
+        }
+        // abort font loading
+        else {
+            abortLoadOnlineFont?.abort(new Error('Font loading aborted by user'));
+            abortLoadOnlineFont = null;
+        }
+    }, [pageState]);
+
+    const displaySvgs = React.useCallback((svgs: FontSvg[]) => {
+        setSvgs(svgs);
+        setPageState('displaySvgs');
     }, []);
 
     const doSearch = React.useCallback(debounce((value: string) => {
@@ -199,15 +219,19 @@ const FontToIconPage: React.FC = () => {
         <div className={styles.container}>
             <div className={styles.svgContainer} ref={svgContainerRef}>
             {
-                svgs.length
+                pageState === 'displaySvgs'
                     ? <DisplaySvgList svgs={filtedSvgs.slice((page - 1) * pageSize, page * pageSize)} />
-                    : <DisplayPickFontFile onFontParsed={setSvgs} />
+                    : <DisplayPickFontFile onFontParsed={displaySvgs} />
             }
             </div>
             <div className={styles.actions}>
-                {svgs.length ? <>
+                {pageState === 'displaySvgs' ? <>
                     {filtedSvgs.length > pageSize
-                        ? <Pagination simple current={page} pageSize={pageSize} total={filtedSvgs.length} onChange={onPageChange} />
+                        ? <Pagination
+                            simple current={page}
+                            pageSize={pageSize}
+                            total={filtedSvgs.length}
+                            onChange={onPageChange} />
                         : null
                     }
                     <Input

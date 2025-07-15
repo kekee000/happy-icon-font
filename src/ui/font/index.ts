@@ -11,7 +11,7 @@ const logger = getLogger('fonteditor');
 const whenWoff2Ready = Promise.race(
     [
         utils.woff2.init('https://kekee000.github.io/fonteditor/dep/woff2/woff2.wasm').catch(() => void 0),
-        new Promise(resolve => setTimeout(resolve, 5000))
+        new Promise(resolve => setTimeout(resolve, 20000))
     ]
 );
 
@@ -89,10 +89,10 @@ export async function writeFontZip(font: FontEditor.Font, fileName: string): Pro
 }
 
 /**
- * create font instance from figma svg 
+ * create font instance from figma svg
  * @param svgs figma svgs
  * @param fontFamily font family
- * @returns 
+ * @returns
  */
 export function createFontFromSvg(svgs: Array<{name: string, svg: string}>, fontFamily: string): FontEditor.Font {
     const glyphs = svgs.map(svg => {
@@ -180,12 +180,20 @@ export interface FontSvg {
  * parse font file to figma svgs
  * @param file font file arraybuffer
  * @param fileType font file type @see FontEditor.FontType
- * @returns 
+ * @returns
  */
-export function parseFontFileToSvg(file: ArrayBuffer, fileType: string): FontSvg[] {
+export async function parseFontFileToSvg(file: ArrayBuffer, fileType: string): Promise<FontSvg[]> {
     if (!['ttf', 'otf', 'woff', 'woff2', 'svg'].includes(fileType)) {
         throw new Error(`Unsupported font file type: ${fileType}`);
     }
+
+    if (fileType === 'woff2') {
+        const whenReady = await whenWoff2Ready;
+        if (!whenReady) {
+            throw new Error('woff2 parser not ready, please reload plugin and try again.');
+        }
+    }
+
     const ttf = utils.createFont(file, {
         type: fileType as FontEditor.FontType,
         compound2simple: true,
@@ -193,7 +201,8 @@ export function parseFontFileToSvg(file: ArrayBuffer, fileType: string): FontSvg
     }).get();
 
     const unitsPerEm = ttf.head.unitsPerEm;
-    const glyphs = ttf.glyf.filter(glyph => (glyph.advanceWidth > 0 && glyph.contours?.length > 0 && glyph.contours[0].length > 1));
+    const glyphs = ttf.glyf.filter(glyph =>
+        (glyph.advanceWidth > 0 && glyph.contours?.length > 0 && glyph.contours[0].length > 1));
     logger.info('parseFontFileToSvg glyphs:', glyphs.length);
 
     const svgs = glyphs.map(glyph => {

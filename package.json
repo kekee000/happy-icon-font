@@ -2,18 +2,18 @@
   "name": "happy-icon-font",
   "private": true,
   "version": "0.0.1",
-  "description": "Export and import icon font in Figma",
+  "description": "Figma icon font plugin, Export and import icon fonts in Figma",
   "license": "UNLICENSED",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack --watch",
     "build": "webpack --mode=production",
     "prettier:format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json}' ",
-    "lint": "eslint src/**/*.{js,jsx,ts,tsx,json} && stylelint **/*.{less,css} --ignore-path .gitignore",
-    "lint:fix": "eslint --fix src/**/*.{js,jsx,ts,tsx,json} && stylelint --fix \"**/*.{less,css}\" --ignore-path .gitignore",
-    "lint:code": "eslint src/**/*.{js,jsx,ts,tsx,json}",
-    "lint:code:fix": "eslint --fix 'src/**/*.{js,jsx,ts,tsx,json}'",
-    "lint:style": "stylelint **/*.{less,css} --ignore-path .gitignore",
-    "lint:style:fix": "stylelint --fix **/*.{less,css} --ignore-path .gitignore"
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx,json}\" && stylelint \"**/*.{less,css}\" --ignore-path .gitignore",
+    "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx,json}\" && stylelint --fix \"**/*.{less,css}\" --ignore-path .gitignore",
+    "lint:code": "eslint \"src/**/*.{js,jsx,ts,tsx,json}\"",
+    "lint:code:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx,json}\"",
+    "lint:style": "stylelint \"**/*.{less,css}\" --ignore-path .gitignore",
+    "lint:style:fix": "stylelint --fix \"**/*.{less,css}\" --ignore-path .gitignore"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",

@@ -66,9 +66,9 @@ const SettingsDialog: React.FC<{
                     name="fontFamily"
                     rules={[
                         {
-                            required: true, pattern: /^[a-zA-Z0-9_-]+$/g, 
+                            required: true, pattern: /^[a-zA-Z0-9_-]+$/g,
                             message: 'Font family should only contain letters, numbers, \'-\', \'_\'.'
-                        }, 
+                        },
                         {type: 'string', max: 100, min: 2}]}>
                     <Input placeholder="input font family" />
                 </Form.Item>
