@@ -8,8 +8,7 @@ import { defineComponent, PropType } from 'vue';
 
 export const enum Icons {
 {% glyfList.forEach(function(glyf) { %}
-    '{%=glyf.name%}' = '{%=glyf.codeName%}',
-{% }); %}
+    '{%=glyf.name || glyf.codeName%}' = '{%=glyf.name || glyf.codeName%}',{% }); %}
 }
 
 export default defineComponent({

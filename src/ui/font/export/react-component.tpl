@@ -3,8 +3,7 @@ import './icon.css';
 
 export const enum Icons {
 {% glyfList.forEach(function(glyf) { %}
-    '{%=glyf.name%}' = '{%=glyf.codeName%}',
-{% }); %}
+    '{%=glyf.name || glyf.codeName%}' = '{%=glyf.name || glyf.codeName%}',{% }); %}
 }
 
 export interface IconProps {
@@ -12,5 +11,5 @@ export interface IconProps {
 }
 
 export const Icon: React.FC<IconProps> = ({name}) => {
-  return (<i className={`icon icon-${name}`}></i>);
+    return (<i className={`icon icon-${name}`}></i>);
 }
