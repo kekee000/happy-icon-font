@@ -7,7 +7,7 @@ Easily transform Figma icons into font files, or import font glyphs directly int
 
 ## Features
 
-- Export Figma icons to TTF, WOFF2, SVG symbols, and icon font examples
+- Export Figma icons to TTF, WOFF2, SVG symbols, react component, vue component and icon font examples
 - Import local font glyphs into Figma (supports TTF, WOFF, WOFF2)
 - Import online icon font glyphs into Figma
 - Search font glyphs by name or Unicode point

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /**
- * @file html渲染器
+ * @file tpl renderer
  * @author mengke01(kekee000@gmail.com)
  */
 
@@ -12,6 +12,11 @@ import symbolExample from './export/symbol-example.tpl';
 import iconCss from './export/icon-css.tpl';
 // @ts-ignore
 import pageCss from './export/page-css.tpl';
+// @ts-ignore
+import vueComponent from './export/vue-component.tpl';
+// @ts-ignore
+import reactComponent from './export/react-component.tpl';
+
 import lang from '../i18n/lang';
 
 const compileOptions = {
@@ -24,32 +29,58 @@ const compileOptions = {
 const ejs = (window as any).ejs;
 
 type EjsRenderer = (data: Record<string, any>) => string;
-let fontExampleRender: EjsRenderer | null = null; // 图标示例渲染器
-let fontCssRender: EjsRenderer | null = null; // 图标css渲染器
-let symbolExampleRender: EjsRenderer | null = null; // symbol渲染器
+
+const rendererCache = new Map<string, EjsRenderer>();
+function getOrCreateRenderer(tpl: string): EjsRenderer {
+    if (!rendererCache.has(tpl)) {
+        rendererCache.set(tpl, ejs.compile(tpl, compileOptions));
+    }
+    return rendererCache.get(tpl);
+}
+
+export interface IconData {
+    symbolText?: string;
+    lang?: Record<string, any>;
+    fontFamily: string;
+    glyfList: Array<{
+        name: string;
+        codeName: string;
+        code: string;
+        id: string;
+    }>
+}
 
 export default {
 
-    renderFontExample(iconData: Record<string, any>) {
-        fontExampleRender = fontExampleRender || ejs.compile(iconExample, compileOptions);
+    renderFontExample(iconData: IconData) {
         iconData.lang = lang;
-        return fontExampleRender(iconData);
+        const renderer = getOrCreateRenderer(iconExample);
+        return renderer(iconData);
     },
 
-    renderSymbolExample(iconData: Record<string, any>) {
-        symbolExampleRender = symbolExampleRender || ejs.compile(symbolExample, compileOptions);
+    renderSymbolExample(iconData: IconData) {
         iconData.lang = lang;
-        return symbolExampleRender(iconData);
+        const renderer = getOrCreateRenderer(symbolExample);
+        return renderer(iconData);
     },
 
-    renderFontCss(iconData: Record<string, any>) {
-        fontCssRender = fontCssRender || ejs.compile(iconCss, compileOptions);
+    renderFontCss(iconData: IconData) {
         iconData.lang = lang;
-
-        return fontCssRender(iconData);
+        const renderer = getOrCreateRenderer(iconCss);
+        return renderer(iconData);
     },
 
     renderPreviewCss() {
         return pageCss;
+    },
+
+    renderVueComponent(ttf: IconData) {
+        const renderer = getOrCreateRenderer(vueComponent);
+        return renderer(ttf);
+    },
+
+    renderReactComponent(ttf: IconData) {
+        const renderer = getOrCreateRenderer(reactComponent);
+        return renderer(ttf);
     }
 };

@@ -1,6 +1,6 @@
 import {createFont, FontEditor, TTF, default as utils} from 'fonteditor-core';
 import JSZip from 'jszip';
-import exportRender from './exportRender';
+import exportRender, { IconData } from './exportRender';
 import contours2svg from 'fonteditor-core/lib/ttf/util/contours2svg.js';
 import {computePathBox} from 'fonteditor-core/lib/graphics/computeBoundingBox.js';
 import pathsUtil from 'fonteditor-core/lib/graphics/pathsUtil.js';
@@ -59,12 +59,24 @@ export async function writeFontZip(font: FontEditor.Font, fileName: string): Pro
     }
 
     // icon
-    const iconData = utils.ttf2icon(ttf) as Record<string, any>;
+    const iconData = utils.ttf2icon(ttf) as IconData;
 
     // css
     fontzip.file(
         'icon.css',
         exportRender.renderFontCss(iconData)
+    );
+
+    // vue component
+    fontzip.file(
+        'Icon.vue',
+        exportRender.renderVueComponent(iconData)
+    );
+
+    // react component
+    fontzip.file(
+        'Icon.tsx',
+        exportRender.renderReactComponent(iconData)
     );
 
     // page
